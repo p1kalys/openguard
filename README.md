@@ -269,7 +269,7 @@ class CustomGuard extends OpenGuard {
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started, coding standards, and the pull request process.
 
 ### Development Setup
 
@@ -303,51 +303,64 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-### Phase 1 — Core Package
+Here's the current status of our development roadmap. Help us build the future of AI reliability!
+
+| Phase | Feature | Status | Priority |
+|-------|---------|--------|----------|
+| **Phase 1** | Provider abstraction (OpenAI) | ✅ Done | - |
+| **Phase 1** | Schema validation (Zod) | ✅ Done | - |
+| **Phase 1** | JSON extraction & repair | ✅ Done | - |
+| **Phase 1** | Automatic retries | ✅ Done | - |
+| **Phase 1** | Typed responses | ✅ Done | - |
+| **Phase 2** | Multiple provider support | 🔄 In Progress | High |
+| **Phase 2** | Provider fallback chains | 📋 Planned | High |
+| **Phase 2** | Middleware system with plugins | 📋 Planned | Medium |
+| **Phase 2** | Streaming stabilization | 📋 Planned | Medium |
+| **Phase 2** | Response normalization | 📋 Planned | Medium |
+| **Phase 3** | Hallucination detection | 📋 Planned | High |
+| **Phase 3** | Confidence scoring | 📋 Planned | High |
+| **Phase 3** | Semantic validation | 📋 Planned | Medium |
+| **Phase 3** | Self-verification prompting | 📋 Planned | Medium |
+| **Phase 3** | Grounding checks | 📋 Planned | Low |
+| **Phase 4** | Reliability metrics | 📋 Planned | Medium |
+| **Phase 4** | End-to-end tracing | 📋 Planned | Medium |
+| **Phase 4** | AI debugging tools | 📋 Planned | Low |
+| **Phase 4** | Team dashboards | 📋 Planned | Low |
+| **Phase 5** | Plugin marketplace | 📋 Planned | Low |
+| **Phase 5** | Provider SDKs | 📋 Planned | Medium |
+| **Phase 5** | Framework integrations | 📋 Planned | Medium |
+| **Phase 5** | Community tooling | 📋 Planned | Low |
+
+**Legend:**
+- ✅ **Done**: Feature is implemented and released
+- 🔄 **In Progress**: Currently being worked on
+- 📋 **Planned**: Feature is planned but not started
+
+### Phase Overview
+
+#### Phase 1 — Core Package ✅
 **Goal**: Solve biggest real-world AI pain: Reliable structured outputs from LLMs
-- ✅ Provider abstraction (OpenAI)
-- ✅ Schema validation (Zod)
-- ✅ JSON extraction & repair
-- ✅ Automatic retries
-- ✅ Typed responses
+*Completed: Provider abstraction, schema validation, JSON repair, retries, typed responses*
 
-### Phase 2 — Multi-Provider Reliability Layer
+#### Phase 2 — Multi-Provider Reliability Layer
 **Goal**: Make OpenGuard provider-independent
-- [ ] Multiple provider support (Anthropic, Gemini, Mistral, Groq, Ollama, OpenRouter)
-- [ ] Provider fallback chains (GPT-4 → Claude → Gemini)
-- [ ] Middleware system with plugins
-- [ ] Streaming stabilization
-- [ ] Response normalization across providers
+*Focus: Multiple AI providers, fallback chains, middleware, streaming*
 
-### Phase 3 — Advanced Reliability Engine
+#### Phase 3 — Advanced Reliability Engine
 **Goal**: Reduce hallucinations and improve trust
-- [ ] Hallucination detection (unsupported claims, fabricated fields)
-- [ ] Confidence scoring for outputs
-- [ ] Semantic validation (meaning, context, logical consistency)
-- [ ] Self-verification prompting
-- [ ] Grounding checks against sources
+*Focus: Hallucination detection, confidence scoring, semantic validation*
 
-### Phase 4 — Observability & Monitoring
+#### Phase 4 — Observability & Monitoring
 **Goal**: Provide production-grade AI reliability analytics
-- [ ] Reliability metrics (validation failures, retry counts, hallucination rates)
-- [ ] End-to-end tracing (prompt → provider → validation → result)
-- [ ] AI debugging tools
-- [ ] Team dashboards for monitoring
+*Focus: Metrics, tracing, debugging tools, dashboards*
 
-### Phase 5 — OpenGuard Ecosystem
+#### Phase 5 — OpenGuard Ecosystem
 **Goal**: Build open-source ecosystem around AI reliability
-- [ ] Plugin marketplace (community validators, safety filters, repair engines)
-- [ ] Provider SDKs (@openguard/openai, @openguard/anthropic)
-- [ ] Framework integrations (Next.js, Express, NestJS, LangChain, Vercel AI SDK)
-- [ ] Community tooling (templates, examples, starter kits)
+*Focus: Plugin marketplace, SDKs, framework integrations*
 
-### Phase 6 — OpenGuard Cloud (Future)
+#### Phase 6 — OpenGuard Cloud (Future)
 **Goal**: Optional hosted platform for enterprise AI reliability
-- [ ] Hosted observability with cloud dashboards
-- [ ] Enterprise governance (audit logs, policy enforcement, compliance)
-- [ ] Prompt registry for centralized management
-- [ ] Reliability evaluations and testing
-- [ ] Team collaboration workflows
+*Focus: Cloud dashboards, enterprise governance, team workflows*
 
 **Technical Principles**
 - 🎯 **Reliability First**: Every feature improves AI output trustworthiness
