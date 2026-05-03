@@ -275,7 +275,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/openguard.git
+git clone https://github.com/p1kalys/openguard.git
 cd openguard
 
 # Install dependencies
@@ -297,17 +297,63 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- 📖 [Documentation](https://github.com/yourusername/openguard/wiki)
-- 🐛 [Issue Tracker](https://github.com/yourusername/openguard/issues)
-- 💬 [Discussions](https://github.com/yourusername/openguard/discussions)
+- 📖 [Documentation](https://github.com/p1kalys/openguard/wiki)
+- 🐛 [Issue Tracker](https://github.com/p1kalys/openguard/issues)
+- 💬 [Discussions](https://github.com/p1kalys/openguard/discussions)
 
 ## 🗺️ Roadmap
 
-- [ ] Topic-based filtering
-- [ ] Machine learning-based content detection
-- [ ] Real-time monitoring dashboard
-- [ ] Integration with popular AI frameworks
-- [ ] Performance optimizations
+### Phase 1 — Core Package
+**Goal**: Solve biggest real-world AI pain: Reliable structured outputs from LLMs
+- ✅ Provider abstraction (OpenAI)
+- ✅ Schema validation (Zod)
+- ✅ JSON extraction & repair
+- ✅ Automatic retries
+- ✅ Typed responses
+
+### Phase 2 — Multi-Provider Reliability Layer
+**Goal**: Make OpenGuard provider-independent
+- [ ] Multiple provider support (Anthropic, Gemini, Mistral, Groq, Ollama, OpenRouter)
+- [ ] Provider fallback chains (GPT-4 → Claude → Gemini)
+- [ ] Middleware system with plugins
+- [ ] Streaming stabilization
+- [ ] Response normalization across providers
+
+### Phase 3 — Advanced Reliability Engine
+**Goal**: Reduce hallucinations and improve trust
+- [ ] Hallucination detection (unsupported claims, fabricated fields)
+- [ ] Confidence scoring for outputs
+- [ ] Semantic validation (meaning, context, logical consistency)
+- [ ] Self-verification prompting
+- [ ] Grounding checks against sources
+
+### Phase 4 — Observability & Monitoring
+**Goal**: Provide production-grade AI reliability analytics
+- [ ] Reliability metrics (validation failures, retry counts, hallucination rates)
+- [ ] End-to-end tracing (prompt → provider → validation → result)
+- [ ] AI debugging tools
+- [ ] Team dashboards for monitoring
+
+### Phase 5 — OpenGuard Ecosystem
+**Goal**: Build open-source ecosystem around AI reliability
+- [ ] Plugin marketplace (community validators, safety filters, repair engines)
+- [ ] Provider SDKs (@openguard/openai, @openguard/anthropic)
+- [ ] Framework integrations (Next.js, Express, NestJS, LangChain, Vercel AI SDK)
+- [ ] Community tooling (templates, examples, starter kits)
+
+### Phase 6 — OpenGuard Cloud (Future)
+**Goal**: Optional hosted platform for enterprise AI reliability
+- [ ] Hosted observability with cloud dashboards
+- [ ] Enterprise governance (audit logs, policy enforcement, compliance)
+- [ ] Prompt registry for centralized management
+- [ ] Reliability evaluations and testing
+- [ ] Team collaboration workflows
+
+**Technical Principles**
+- 🎯 **Reliability First**: Every feature improves AI output trustworthiness
+- 🚀 **Developer Experience First**: Simple, intuitive, minimal API
+- 🏗️ **Extensible Architecture**: Scale through plugins and providers
+- ⚡ **Keep It Lightweight**: Avoid unnecessary complexity
 
 ## 📊 Stats
 
