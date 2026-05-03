@@ -1,11 +1,13 @@
-# OpenGuard
+# OpenGuard 
+> Universal reliability layer for LLM applications.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A minimal TypeScript library for implementing guardrails around AI interactions to ensure safe and responsible usage.
 
 Every AI application rebuilds the same reliability layer repeatedly. 
 This project exists to make that unnecessary.
+
+OpenGuard is an open-source TypeScript toolkit designed to make AI outputs reliable, structured, and production-ready across any LLM provider.
 
 ## 🚀 Features
 
