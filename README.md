@@ -4,6 +4,9 @@
 
 A minimal TypeScript library for implementing guardrails around AI interactions to ensure safe and responsible usage.
 
+Every AI application rebuilds the same reliability layer repeatedly. 
+This project exists to make that unnecessary.
+
 ## 🚀 Features
 
 - **Input Validation**: Validate user inputs against configurable rules
