@@ -43,6 +43,10 @@
     "vitest": "^1.6.1"
   },
   "dependencies": {
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@google/generative-ai": "^0.21.0",
+    "@mistralai/mistralai": "^0.4.0",
+    "groq-sdk": "^0.9.0",
+    "openai": "^4.68.4"
   }
 }
