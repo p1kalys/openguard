@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { success, error, isError, isSuccess, unwrap, OpenGuardError, type OpenGuardResult } from '../src/errors.js';
+import { success, error, isError, isSuccess, unwrap, OpenGuardResultError as OpenGuardError } from '../src/errors/result.js';
 
 describe('Error Handling', () => {
   describe('success and error helpers', () => {
@@ -12,17 +12,17 @@ describe('Error Handling', () => {
     });
 
     it('should create error result', () => {
-      const result = error('TEST_ERROR', 'Test message');
+      const result = error('UNKNOWN_ERROR', 'Test message');
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.type).toBe('TEST_ERROR');
+        expect(result.error.type).toBe('UNKNOWN_ERROR');
         expect(result.error.message).toBe('Test message');
         expect(result.error.timestamp).toBeDefined();
       }
     });
 
     it('should include additional error details', () => {
-      const result = error('TEST_ERROR', 'Test message', {
+      const result = error('UNKNOWN_ERROR', 'Test message', {
         retries: 3,
         originalResponse: 'bad json',
       });
@@ -36,7 +36,7 @@ describe('Error Handling', () => {
 
   describe('type guards', () => {
     it('should identify error results', () => {
-      const errorResult = error('TEST', 'message');
+      const errorResult = error('UNKNOWN_ERROR', 'message');
       expect(isError(errorResult)).toBe(true);
       expect(isSuccess(errorResult)).toBe(false);
     });
@@ -55,7 +55,7 @@ describe('Error Handling', () => {
     });
 
     it('should throw for error result', () => {
-      const result = error('TEST', 'message');
+      const result = error('UNKNOWN_ERROR', 'message');
       expect(() => unwrap(result)).toThrow(OpenGuardError);
     });
   });

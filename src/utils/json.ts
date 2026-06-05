@@ -2,7 +2,7 @@
  * JSON extraction utilities for LLM responses
  */
 
-import { error, OpenGuardResult } from '../errors.js';
+import { error, OpenGuardResult } from '../errors/result.js';
 
 /**
  * Extract valid JSON from markdown-wrapped LLM responses.

@@ -1,15 +1,13 @@
 /**
- * Example usage of the new AIProvider interface
+ * Example usage of the AIProvider interface
  */
 
 import { OpenAIProvider } from '../src/providers/openai.js';
-import { EnhancedOpenAIProvider } from '../src/providers/openai-enhanced.js';
-import { adaptProvider } from '../src/providers/adapter.js';
 import type { AIProvider, GenerateRequest } from '../src/providers/base.js';
 
-// Example 1: Using the enhanced provider directly
+// Example 1: Using the provider directly
 async function exampleDirectUsage() {
-  const provider: AIProvider = new EnhancedOpenAIProvider({
+  const provider: AIProvider = new OpenAIProvider({
     apiKey: process.env.OPENAI_API_KEY!,
     defaultModel: 'gpt-4o-mini',
   });
@@ -33,45 +31,41 @@ async function exampleDirectUsage() {
   }
 }
 
-// Example 2: Using adapter with existing provider
-async function exampleAdapterUsage() {
-  const legacyProvider = new OpenAIProvider({
+// Example 2: Using provider with message array prompt
+async function exampleMessagesUsage() {
+  const provider: AIProvider = new OpenAIProvider({
     apiKey: process.env.OPENAI_API_KEY!,
   });
-
-  const provider: AIProvider = adaptProvider(legacyProvider);
 
   const request: GenerateRequest = {
     prompt: [
       { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: 'What is the capital of France?' }
+      { role: 'user', content: 'What is the capital of France?' },
     ],
     temperature: 0.3,
   };
 
   const response = await provider.generate(request);
-  console.log('Adapter response:', response.content);
+  console.log('Response:', response.content);
 }
 
 // Example 3: Custom provider implementation
 class MockProvider implements AIProvider {
+  readonly capabilities = { streaming: true, jsonMode: false, tools: false, vision: false };
+
   async generate(request: GenerateRequest) {
     return {
       id: 'mock-123',
       content: `Mock response for: ${typeof request.prompt === 'string' ? request.prompt : request.prompt.map(m => m.content).join(' ')}`,
       model: request.model || 'mock-model',
-      finishReason: 'stop',
-      usage: {
-        promptTokens: 10,
-        completionTokens: 5,
-        totalTokens: 15,
-      },
+      finishReason: 'stop' as const,
+      usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
     };
   }
 
   async *streamGenerate(request: GenerateRequest) {
     const content = `Streaming mock response for: ${typeof request.prompt === 'string' ? request.prompt : 'multiple messages'}`;
-    
+
     for (const word of content.split(' ')) {
       yield {
         id: 'mock-stream-' + Math.random(),
@@ -80,12 +74,12 @@ class MockProvider implements AIProvider {
         finishReason: null,
       };
     }
-    
+
     yield {
       id: 'mock-stream-final',
       content: '',
       model: request.model || 'mock-model',
-      finishReason: 'stop',
+      finishReason: 'stop' as const,
       usage: {
         promptTokens: 10,
         completionTokens: content.split(' ').length,
@@ -105,9 +99,7 @@ async function exampleCustomProvider() {
   console.log('Custom provider response:', response.content);
 
   console.log('\nCustom provider stream:');
-  for await (const chunk of provider.streamGenerate({
-    prompt: 'Stream this message'
-  })) {
+  for await (const chunk of provider.streamGenerate({ prompt: 'Stream this message' })) {
     process.stdout.write(chunk.content);
   }
 }
@@ -115,13 +107,13 @@ async function exampleCustomProvider() {
 // Run examples
 if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('=== Provider Interface Examples ===\n');
-  
+
   console.log('1. Direct usage:');
   await exampleDirectUsage().catch(console.error);
-  
-  console.log('\n2. Adapter usage:');
-  await exampleAdapterUsage().catch(console.error);
-  
+
+  console.log('\n2. Messages usage:');
+  await exampleMessagesUsage().catch(console.error);
+
   console.log('\n3. Custom provider:');
   await exampleCustomProvider().catch(console.error);
 }

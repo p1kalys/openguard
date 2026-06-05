@@ -1,5 +1,8 @@
 /**
- * Structured error objects for OpenGuard
+ * Result type system for OpenGuard
+ *
+ * Provides a functional error-handling pattern using Result<T> / ErrorResult
+ * types, distinct from the class-based OpenGuardError hierarchy in base.ts.
  */
 
 export type ErrorType =
@@ -79,20 +82,22 @@ export function isSuccess<T>(result: OpenGuardResult<T>): result is Result<T> {
  */
 export function unwrap<T>(result: OpenGuardResult<T>): T {
   if (isError(result)) {
-    throw new OpenGuardError(result.error);
+    throw new OpenGuardResultError(result.error);
   }
   return result.data;
 }
 
 /**
- * Custom error class for OpenGuard
+ * Error class wrapping an ErrorDetails payload (Result-style error system).
+ * Named OpenGuardResultError to distinguish from the class-hierarchy
+ * OpenGuardError in errors/base.ts.
  */
-export class OpenGuardError extends Error {
+export class OpenGuardResultError extends Error {
   public readonly details: ErrorDetails;
 
   constructor(details: ErrorDetails) {
     super(details.message);
-    this.name = 'OpenGuardError';
+    this.name = 'OpenGuardResultError';
     this.details = details;
   }
 

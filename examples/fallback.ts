@@ -2,7 +2,7 @@
  * Example usage of FallbackOrchestrator
  */
 
-import { FallbackOrchestrator } from '../src/orchestration/fallback.js';
+import { FallbackOrchestrator } from '../src/core/orchestration.js';
 import { OpenAIProvider } from '../src/providers/openai.js';
 import { GeminiProvider } from '../src/providers/gemini.js';
 import { GroqProvider } from '../src/providers/groq.js';
@@ -32,7 +32,7 @@ const mistral = new MistralProvider({
 // Example 1: Basic fallback with multiple providers
 async function basicFallbackExample() {
   console.log('=== Basic Fallback Example ===');
-  
+
   const orchestrator = new FallbackOrchestrator()
     .addProvider({ provider: openai, maxRetries: 2, timeout: 5000 })
     .addProvider({ provider: gemini, maxRetries: 1, timeout: 3000 })
@@ -59,7 +59,7 @@ async function basicFallbackExample() {
 // Example 2: Fallback with schema validation
 async function schemaValidationExample() {
   console.log('\n=== Schema Validation Example ===');
-  
+
   // Simple schema validation - response must contain "Paris"
   const validateCapitalResponse = (response: any) => {
     return response.content.toLowerCase().includes('paris');
@@ -87,87 +87,16 @@ async function schemaValidationExample() {
   }
 }
 
-// Example 3: Streaming fallback
-async function streamingFallbackExample() {
-  console.log('\n=== Streaming Fallback Example ===');
-  
-  const orchestrator = new FallbackOrchestrator()
-    .addProvider({ provider: groq, maxRetries: 1, timeout: 3000 })
-    .addProvider({ provider: mistral, maxRetries: 1, timeout: 3000 });
-
-  try {
-    console.log('Streaming response:');
-    
-    for await (const result of orchestrator.streamGenerate({
-      prompt: 'Write a short poem about technology.',
-      temperature: 0.8,
-      maxTokens: 200,
-    })) {
-      process.stdout.write(result.chunk.content);
-      
-      if (result.chunk.content && result.chunk.content.includes('.')) {
-        console.log('\n\n✅ Streaming complete!');
-        console.log('Provider:', result.provider);
-        console.log('Attempts:', result.attempts);
-        break;
-      }
-    }
-  } catch (error) {
-    console.error('❌ All streaming providers failed:', error);
-  }
-}
-
-// Example 4: Provider management
-async function providerManagementExample() {
-  console.log('\n=== Provider Management Example ===');
-  
-  const orchestrator = new FallbackOrchestrator()
-    .addProvider({ provider: openai, enabled: false }) // Disabled
-    .addProvider({ provider: gemini })
-    .addProvider({ provider: groq });
-
-  console.log('Initial providers:', orchestrator.getProviders());
-  
-  // Enable OpenAI, disable Gemini
-  orchestrator.setProviderEnabled('OpenAIProvider', true);
-  orchestrator.setProviderEnabled('GeminiProvider', false);
-  
-  console.log('Updated providers:', orchestrator.getProviders());
-  
-  try {
-    const result = await orchestrator.generate({
-      prompt: 'What is 2 + 2?',
-      temperature: 0.1,
-      maxTokens: 50,
-    });
-    
-    console.log('Response:', result.response.content);
-    console.log('Provider:', result.provider);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-// Example 5: Advanced configuration with timeouts
+// Example 3: Advanced configuration with timeouts
 async function advancedConfigExample() {
   console.log('\n=== Advanced Configuration Example ===');
-  
+
   const orchestrator = new FallbackOrchestrator({
-    globalTimeout: 15000, // 15 seconds total
-    continueOnSuccess: false, // Stop at first success
+    globalTimeout: 15000,
+    continueOnSuccess: false,
   })
-    .addProvider({ 
-      provider: openai, 
-      maxRetries: 2, 
-      timeout: 2000, // 2 seconds per attempt
-      enabled: true 
-    })
-    .addProvider({ 
-      provider: groq, 
-      maxRetries: 1, 
-      timeout: 1000, // 1 second per attempt
-      enabled: true 
-    });
+    .addProvider({ provider: openai, maxRetries: 2, timeout: 2000, enabled: true })
+    .addProvider({ provider: groq, maxRetries: 1, timeout: 1000, enabled: true });
 
   try {
     const result = await orchestrator.generate({
@@ -189,8 +118,6 @@ async function advancedConfigExample() {
 async function main() {
   await basicFallbackExample();
   await schemaValidationExample();
-  await streamingFallbackExample();
-  await providerManagementExample();
   await advancedConfigExample();
 }
 

@@ -115,10 +115,10 @@ const customStrategy = createRetryStrategy({
   maxRetries: 4,
   initialDelayMs: 500,
   backoffStrategy: 'exponential-with-jitter',
-  backoffMultiplier: 2,
-  maxDelayMs: 5000,
+  jitterFactor: 0.2,
   onRetry: (err, attempt, delayMs) => {
-    console.log(`  Retry ${attempt} after ${delayMs}ms delay: ${err.message}`);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.log(`  Retry ${attempt} after ${delayMs}ms delay: ${msg}`);
   },
 });
 
