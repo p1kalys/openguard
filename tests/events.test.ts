@@ -78,7 +78,7 @@ describe('Event System', () => {
       emitter.on(
         'retry',
         handler,
-        { filter: (e) => e.data.attempt > 0 }
+        { filter: (e) => e.eventType === 'retry' && e.data.attempt > 0 }
       );
 
       await emitter.emit({
@@ -168,7 +168,7 @@ describe('Event System', () => {
   describe('RequestEventContext', () => {
     it('correlates events with a shared requestId', async () => {
       const events: OpenGuardEvent[] = [];
-      emitter.onAny((e) => events.push(e));
+      emitter.onAny((e) => { events.push(e); });
 
       const ctx = createRequestEventContext({ requestId: 'req_correlated', emitter });
       await ctx.emitRequestStart({ prompt: 'test', model: 'gpt-4' }, 'ProviderA');
