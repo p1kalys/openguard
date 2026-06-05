@@ -48,6 +48,24 @@ OpenGuard is an open-source TypeScript toolkit designed to make AI outputs relia
 - **Repair Operations**: Automatic JSON repair and correction
 - **Retry Logic**: Intelligent retry mechanisms with backoff
 
+## 📚 Documentation
+
+Full module documentation lives in [`docs/`](docs/README.md).
+
+| Module | Docs |
+|--------|------|
+| Event System | [docs/events.md](docs/events.md) |
+| Metrics Engine | [docs/metrics.md](docs/metrics.md) |
+| Request Tracing | [docs/tracing.md](docs/tracing.md) |
+| Storage Layer | [docs/storage.md](docs/storage.md) |
+| Observability Query | [docs/query.md](docs/query.md) |
+| Team Monitoring | [docs/monitoring.md](docs/monitoring.md) |
+| Plugin SDK | [docs/plugins.md](docs/plugins.md) |
+| Debug Snapshots | [docs/debug.md](docs/debug.md) |
+| Grounding Validation | [docs/grounding.md](docs/grounding.md) |
+| Hallucination Detection | [docs/hallucination.md](docs/hallucination.md) |
+| Confidence Aggregation | [docs/confidence.md](docs/confidence.md) |
+
 ## 📦 Installation
 
 ```bash
@@ -501,20 +519,20 @@ Here's the current status of our development roadmap. Help us build the future o
 | **Phase 1** | JSON extraction & repair | ✅ Done | - |
 | **Phase 1** | Automatic retries | ✅ Done | - |
 | **Phase 1** | Typed responses | ✅ Done | - |
-| **Phase 2** | Multiple provider support | 🔄 In Progress | High |
+| **Phase 2** | Multiple provider support | ✅ Done | High |
 | **Phase 2** | Provider fallback chains | 📋 Planned | High |
-| **Phase 2** | Middleware system with plugins | 📋 Planned | Medium |
+| **Phase 2** | Middleware system with plugins | ✅ Done | Medium |
 | **Phase 2** | Streaming stabilization | 📋 Planned | Medium |
 | **Phase 2** | Response normalization | ✅ Done | Medium |
 | **Phase 3** | Hallucination detection | ✅ Done | High |
 | **Phase 3** | Confidence scoring | ✅ Done | High |
 | **Phase 3** | Semantic validation | ✅ Done | Medium |
-| **Phase 3** | Self-verification prompting | 📋 Planned | Medium |
+| **Phase 3** | Self-verification prompting | ✅ Done | Medium |
 | **Phase 3** | Grounding checks | ✅ Done | Low |
 | **Phase 4** | Reliability metrics | ✅ Done | Medium |
-| **Phase 4** | End-to-end tracing | 📋 Planned | Medium |
-| **Phase 4** | AI debugging tools | 📋 Planned | Low |
-| **Phase 4** | Team dashboards | 📋 Planned | Low |
+| **Phase 4** | End-to-end tracing | ✅ Done | Medium |
+| **Phase 4** | AI debugging tools | ✅ Done | Low |
+| **Phase 4** | Team dashboards | ✅ Done | Low |
 | **Phase 5** | Plugin marketplace | 📋 Planned | Low |
 | **Phase 5** | Provider SDKs | 📋 Planned | Medium |
 | **Phase 5** | Framework integrations | 📋 Planned | Medium |

@@ -37,3 +37,6 @@ export { MetricsAggregator, metricsAggregator } from './aggregator.js';
 
 // Event integration
 export { enableEventMetrics, disableEventMetrics } from './integration.js';
+
+// Engine wrapper
+export { ReliabilityMetricsEngine, reliabilityMetricsEngine } from './engine.js';

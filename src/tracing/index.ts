@@ -46,10 +46,10 @@ export type {
 export { SpanBuilder, generateSpanId } from './span.js';
 
 // Tracer, TraceContext, global singleton
+export type { TracerOptions } from './tracer.js';
 export {
   TraceContext,
   Tracer,
-  TracerOptions,
   tracer,
   generateTraceId,
 } from './tracer.js';

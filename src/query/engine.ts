@@ -256,9 +256,14 @@ export class ObservabilityQueryEngine {
     const limit  = filter.limit  ?? 20;
     const offset = filter.offset ?? 0;
 
-    // Fetch all matching traces for analytics (up to ANALYTICS_FETCH_LIMIT)
-    const allPage = await this._storage.traces.queryTraces(toTraceQuery(filter));
-    const all = allPage.items;
+    // Two fetches in parallel:
+    //   analyticsPage — full window (up to ANALYTICS_FETCH_LIMIT) for aggregate stats
+    //   itemsPage     — store-level pagination so items are correct beyond ANALYTICS_FETCH_LIMIT
+    const [analyticsPage, itemsPage] = await Promise.all([
+      this._storage.traces.queryTraces(toTraceQuery(filter)),
+      this._storage.traces.queryTraces(toTraceQuery(filter, offset, limit)),
+    ]);
+    const all = analyticsPage.items;
 
     const durations = all.map((t) => t.duration ?? 0).filter((d) => d > 0);
     const latStats  = numericSummary(durations);
@@ -288,19 +293,16 @@ export class ObservabilityQueryEngine {
         : 0;
     }
 
-    // Slowest traces
+    // Slowest traces (from analytics window)
     const slowest = [...all]
       .filter((t) => t.duration !== undefined)
       .sort((a, b) => (b.duration ?? 0) - (a.duration ?? 0))
       .slice(0, limit)
       .map(traceToSummary);
 
-    // Paginated item list
-    const pageItems = all.slice(offset, offset + limit).map(traceToSummary);
-
     return {
       filter,
-      total:         allPage.total,
+      total:         analyticsPage.total,
       successCount,
       errorCount,
       successRate:   safeRate(successCount, all.length),
@@ -308,8 +310,8 @@ export class ObservabilityQueryEngine {
       p95DurationMs: latStats.p95,
       byProvider,
       slowest,
-      items:    pageItems,
-      hasMore:  offset + limit < allPage.total,
+      items:    itemsPage.items.map(traceToSummary),
+      hasMore:  offset + limit < analyticsPage.total,
     };
   }
 
@@ -574,38 +576,40 @@ export class ObservabilityQueryEngine {
       const allLatencies = [...durations, ...latMs];
       const combinedLat  = numericSummary(allLatencies);
 
-      const totalTokens      = tokens.reduce((s, m) => s + m.data.totalTokens, 0);
-      const totalRequests    = Math.max(pTraces.length, 1);
-      const retryRequestsSet = new Set(retries.map((_, i) => i)); // approximate: treat each metric as distinct
-      const retryRate        = safeRate(retries.length > 0 ? Math.min(retries.length, totalRequests) : 0, totalRequests);
+      const totalTokens   = tokens.reduce((s, m) => s + m.data.totalTokens, 0);
+      const totalRequests = pTraces.length;
+      // Use attempt===1 count as proxy for distinct retry-sequences (same convention as _computeRetries)
+      const retrySequences = retries.filter((m) => m.data.attempt === 1).length;
+      const retryRate      = safeRate(retrySequences, Math.max(totalRequests, 1));
 
       // ── Snapshots ────────────────────────────────────────────────────────
       const pSnaps = snapshots.filter((s) => (s.provider ?? 'unknown') === provider);
       const snapsWithValFail  = pSnaps.filter((s) => s.validations.some((v) => !v.passed));
       const snapsWithHallucin = pSnaps.filter((s) => s.hallucinationChecks.some((h) => h.isHallucinated));
 
-      const validationFailureRate  = safeRate(snapsWithValFail.length,  pSnaps.length);
-      const hallucinationDetRate   = safeRate(snapsWithHallucin.length, pSnaps.filter((s) => s.hallucinationChecks.length > 0).length);
+      const validationFailureRate = safeRate(snapsWithValFail.length,  pSnaps.length);
+      const hallucinationDetRate  = safeRate(snapsWithHallucin.length, pSnaps.filter((s) => s.hallucinationChecks.length > 0).length);
 
       // Composite reliability score (0–100)
+      const denom = Math.max(totalRequests, 1);
       const reliability =
-        safeRate(successCount, Math.max(pTraces.length, 1)) * 40 +
-        (1 - retryRate)                                    * 20 +
-        (1 - validationFailureRate)                        * 20 +
-        (1 - hallucinationDetRate)                         * 20;
+        safeRate(successCount, denom) * 40 +
+        (1 - retryRate)               * 20 +
+        (1 - validationFailureRate)   * 20 +
+        (1 - hallucinationDetRate)    * 20;
 
       return {
         provider,
         models,
-        totalRequests:             totalRequests,
+        totalRequests,
         successCount,
         errorCount,
-        successRate:               safeRate(successCount, Math.max(pTraces.length, 1)),
-        errorRate:                 safeRate(errorCount,   Math.max(pTraces.length, 1)),
+        successRate:               safeRate(successCount, denom),
+        errorRate:                 safeRate(errorCount,   denom),
         avgLatencyMs:              combinedLat.avg,
         p95LatencyMs:              combinedLat.p95,
         retryRate,
-        avgTokensPerRequest:       safeRate(totalTokens, totalRequests),
+        avgTokensPerRequest:       safeRate(totalTokens, denom),
         totalTokens,
         hallucinationDetectionRate: hallucinationDetRate,
         validationFailureRate,
@@ -665,19 +669,18 @@ export class ObservabilityQueryEngine {
 
   private _computeRetries(metrics: RetryMetric[]): RetryAnalytics {
     const byReason: Record<string, number> = {};
-    const requestsSeen = new Set<string>();
     for (const m of metrics) {
       byReason[m.data.reason] = (byReason[m.data.reason] ?? 0) + 1;
-      // Use provider+model+timestamp as a rough request key
-      requestsSeen.add(`${m.dimensions.provider}:${m.dimensions.model}:${m.timestamp}`);
     }
+    // Each attempt===1 event marks the start of a new retry sequence for a request.
+    // Attempts are 1-based (per the event system convention).
+    const requestsWithRetries = metrics.filter((m) => m.data.attempt === 1).length;
     return {
-      totalRetryEvents:             metrics.length,
-      requestsWithRetries:          requestsSeen.size,
-      avgAttemptsPerRetryRequest:   metrics.length > 0 ? safeRate(
-        metrics.reduce((s, m) => s + m.data.attempt, 0),
-        metrics.length,
-      ) : 0,
+      totalRetryEvents:           metrics.length,
+      requestsWithRetries,
+      avgAttemptsPerRetryRequest: requestsWithRetries > 0
+        ? safeRate(metrics.length, requestsWithRetries)
+        : 0,
       byReason,
     };
   }

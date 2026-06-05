@@ -54,3 +54,14 @@ export {
   observabilityStorage,
 } from './registry.js';
 export type { StorageRegistryOptions } from './registry.js';
+
+// Integration helpers (event-driven auto-save + one-shot flush)
+export {
+  attachStorageToEvents,
+  flushMetricsToStore,
+  flushTracesToStore,
+} from './integration.js';
+export type {
+  StorageAttachmentOptions,
+  StorageAttachment,
+} from './integration.js';

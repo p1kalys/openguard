@@ -32,3 +32,6 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+
+# Packed npm tarballs
+*.tgz

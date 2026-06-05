@@ -128,6 +128,9 @@ export * from './debug/index.js';
 // --- Storage Abstraction ---
 export * from './storage/index.js';
 
+// --- Plugin SDK ---
+export * from './plugins/index.js';
+
 // --- Observability Query API ---
 export * from './query/index.js';
 

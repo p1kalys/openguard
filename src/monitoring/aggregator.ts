@@ -71,7 +71,9 @@ function computeAppMetrics(collector: MetricsCollector, timeRange?: { start: num
 
   // ── Retries ───────────────────────────────────────────────────────────────
   const retryEvents = raw.filter((m) => m.metricType === 'retry');
-  const retryRate   = Math.min(1, safeRate(retryEvents.length, requestCount));
+  // Count sequences where attempt===1 as distinct retried requests (1-based attempts).
+  const retrySequences = retryEvents.filter((m) => (m as any).data.attempt === 1).length;
+  const retryRate      = Math.min(1, safeRate(retrySequences, Math.max(requestCount, 1)));
 
   // ── Validation failures ───────────────────────────────────────────────────
   const valFailEvents         = raw.filter((m) => m.metricType === 'validation.failure');
@@ -122,22 +124,29 @@ function summariseProfiles(profiles: AppProfile[]): AppMetrics {
     };
   }
 
-  const n = profiles.length;
   const ms = profiles.map((p) => p.metrics);
 
-  const requestCount  = ms.reduce((s, m) => s + m.requestCount,  0);
-  const successCount  = ms.reduce((s, m) => s + m.successCount,  0);
-  const errorCount    = ms.reduce((s, m) => s + m.errorCount,    0);
-  const totalTokens   = ms.reduce((s, m) => s + m.totalTokens,   0);
+  // Counts are summed directly.
+  const requestCount = ms.reduce((s, m) => s + m.requestCount, 0);
+  const successCount = ms.reduce((s, m) => s + m.successCount, 0);
+  const errorCount   = ms.reduce((s, m) => s + m.errorCount,   0);
+  const totalTokens  = ms.reduce((s, m) => s + m.totalTokens,  0);
 
-  // Average the rates across apps
-  const avgLatencyMs              = ms.reduce((s, m) => s + m.avgLatencyMs,              0) / n;
-  const p95LatencyMs              = ms.reduce((s, m) => s + m.p95LatencyMs,              0) / n;
-  const retryRate                 = ms.reduce((s, m) => s + m.retryRate,                 0) / n;
-  const validationFailureRate     = ms.reduce((s, m) => s + m.validationFailureRate,     0) / n;
-  const hallucinationDetectionRate = ms.reduce((s, m) => s + m.hallucinationDetectionRate, 0) / n;
-  const successRate               = safeRate(successCount, Math.max(requestCount, 1));
-  const reliabilityScore          = Math.round(ms.reduce((s, m) => s + m.reliabilityScore, 0) / n);
+  // Rates and latencies are weighted by each app's requestCount so that a
+  // high-volume app has proportionally more influence than a nearly-idle one.
+  // Falls back to a plain average when all apps have zero requests.
+  const denom = Math.max(requestCount, 1);
+  const weightedSum = (field: keyof AppMetrics) =>
+    ms.reduce((s, m) => s + (m[field] as number) * Math.max(m.requestCount, 1), 0);
+  const totalWeight = ms.reduce((s, m) => s + Math.max(m.requestCount, 1), 0);
+
+  const avgLatencyMs              = weightedSum('avgLatencyMs')              / totalWeight;
+  const p95LatencyMs              = weightedSum('p95LatencyMs')              / totalWeight;
+  const retryRate                 = weightedSum('retryRate')                 / totalWeight;
+  const validationFailureRate     = weightedSum('validationFailureRate')     / totalWeight;
+  const hallucinationDetectionRate = weightedSum('hallucinationDetectionRate') / totalWeight;
+  const successRate               = safeRate(successCount, denom);
+  const reliabilityScore          = Math.round(weightedSum('reliabilityScore') / totalWeight);
 
   return {
     requestCount,
