@@ -3,6 +3,7 @@
  */
 
 import type { GenerateResponse } from '../providers/base.js';
+import type { RequestEventContext } from '../events/helpers.js';
 
 /**
  * Standardized finish reasons across all providers
@@ -135,8 +136,34 @@ export class ResponseNormalizer {
 export function normalizeResponse(
   response: GenerateResponse,
   providerName: string,
-  processingTime?: number
+  processingTime?: number,
+  eventContext?: RequestEventContext
 ): NormalizedResponse {
+  const start = Date.now();
   const normalizer = new ResponseNormalizer(providerName);
-  return normalizer.normalize(response, processingTime);
+  const normalized = normalizer.normalize(response, processingTime);
+
+  if (eventContext) {
+    const normalizedResponse: GenerateResponse = {
+      ...response,
+      content: normalized.content,
+      model: normalized.model,
+      finishReason: normalized.finishReason as GenerateResponse['finishReason'],
+      usage: normalized.usage
+        ? {
+            promptTokens: normalized.usage.promptTokens,
+            completionTokens: normalized.usage.completionTokens,
+            totalTokens: normalized.usage.totalTokens,
+          }
+        : response.usage,
+    };
+    void eventContext.emitNormalization(
+      providerName,
+      response,
+      normalizedResponse,
+      processingTime ?? Date.now() - start
+    );
+  }
+
+  return normalized;
 }

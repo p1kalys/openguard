@@ -10,6 +10,8 @@ import {
   DEFAULT_HALLUCINATION_CONFIG
 } from './types.js';
 import { NormalizedResponse } from '../types/normalized.js';
+import type { RequestEventContext } from '../events/helpers.js';
+import type { GenerateResponse } from '../providers/base.js';
 
 /**
  * Hallucination detection engine
@@ -26,7 +28,8 @@ export class HallucinationDetectionEngine {
    */
   async detectHallucinations(
     response: NormalizedResponse,
-    config?: Partial<HallucinationDetectionConfig>
+    config?: Partial<HallucinationDetectionConfig>,
+    eventContext?: RequestEventContext
   ): Promise<HallucinationDetectionResponse> {
     const startTime = Date.now();
     const finalConfig = { ...this.config, ...config };
@@ -59,6 +62,33 @@ export class HallucinationDetectionEngine {
 
     // Calculate overall result
     const result = this.calculateDetectionResult(issues, finalConfig);
+
+    if (eventContext) {
+      const generateResponse: GenerateResponse = {
+        id: `hallucination-${Date.now()}`,
+        content: response.text,
+        model: response.model,
+        finishReason: response.finishReason as GenerateResponse['finishReason'],
+        usage: response.usage
+          ? {
+              promptTokens: response.usage.inputTokens ?? 0,
+              completionTokens: response.usage.outputTokens ?? 0,
+              totalTokens: response.usage.totalTokens ?? 0,
+            }
+          : undefined,
+      };
+      const confidence =
+        result.issues.length > 0
+          ? result.issues.reduce((sum, i) => sum + i.confidence, 0) / result.issues.length
+          : 1 - result.hallucinationScore;
+      void eventContext.emitHallucinationCheck(
+        generateResponse,
+        result.hallucinationScore,
+        result.isHallucinated,
+        confidence,
+        { issueCount: result.issues.length }
+      );
+    }
 
     return {
       originalResponse: response,

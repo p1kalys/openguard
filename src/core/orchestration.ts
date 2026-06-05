@@ -3,6 +3,7 @@
  */
 
 import type { AIProvider, GenerateRequest, GenerateResponse } from '../providers/base.js';
+import { createRequestEventContext, type RequestEventContext } from '../events/index.js';
 
 /**
  * Fallback configuration for a provider
@@ -44,6 +45,8 @@ export interface FallbackResult {
   fallbackChain: string[];
   /** Time taken in milliseconds */
   duration: number;
+  /** Request ID used for event correlation */
+  requestId: string;
 }
 
 /**
@@ -81,28 +84,50 @@ export class FallbackOrchestrator {
     const startTime = Date.now();
     const fallbackChain: string[] = [];
     let totalAttempts = 0;
+    const ctx = createRequestEventContext();
+
+    await ctx.emitRequestStart(
+      request,
+      this.configs[0]?.provider.constructor.name || 'unknown'
+    );
 
     for (const config of this.configs) {
       if (!config.enabled) continue;
 
-      fallbackChain.push(config.provider.constructor.name);
-      
+      const providerName = config.provider.constructor.name;
+      fallbackChain.push(providerName);
+
       try {
-        const result = await this.executeWithRetry(config, request);
+        const result = await this.executeWithRetry(config, request, ctx);
         totalAttempts += result.attempts;
+
+        await ctx.emitCompletion(
+          result.response,
+          Date.now() - startTime,
+          totalAttempts,
+          providerName
+        );
 
         return {
           response: result.response,
-          provider: config.provider.constructor.name,
+          provider: providerName,
           attempts: totalAttempts,
           fallbackChain,
           duration: Date.now() - startTime,
+          requestId: ctx.requestId,
         };
       } catch (error) {
         totalAttempts += config.maxRetries! + 1;
         continue;
       }
     }
+
+    await ctx.emitFailure(
+      new Error('All fallback providers failed'),
+      'provider',
+      Date.now() - startTime,
+      totalAttempts
+    );
 
     throw new Error('All fallback providers failed');
   }
@@ -112,14 +137,23 @@ export class FallbackOrchestrator {
    */
   private async executeWithRetry(
     config: FallbackConfig,
-    request: GenerateRequest
+    request: GenerateRequest,
+    ctx: RequestEventContext
   ): Promise<{ response: GenerateResponse; attempts: number }> {
     let lastError: Error | null = null;
     let attempts = 0;
 
     for (let attempt = 0; attempt <= config.maxRetries!; attempt++) {
       attempts++;
-      
+      const providerName = config.provider.constructor.name;
+
+      await ctx.emitProviderCall(
+        providerName,
+        request.model || 'unknown',
+        attempt,
+        request
+      );
+
       try {
         const response = await this.withTimeout(
           config.provider.generate(request),
@@ -128,6 +162,12 @@ export class FallbackOrchestrator {
 
         if (this.options.validateSchema) {
           const isValid = await this.options.validateSchema(response);
+          await ctx.emitValidation(
+            'schema',
+            isValid,
+            undefined,
+            isValid ? undefined : 'Schema validation failed'
+          );
           if (!isValid) {
             throw new Error('Schema validation failed');
           }
@@ -136,13 +176,21 @@ export class FallbackOrchestrator {
         return { response, attempts };
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
+
         if (lastError.message === 'Schema validation failed') {
           throw lastError;
         }
-        
+
         if (attempt < config.maxRetries!) {
-          await this.delay(Math.pow(2, attempt) * 1000);
+          const delay = Math.pow(2, attempt) * 1000;
+          await ctx.emitRetry(
+            attempt,
+            config.maxRetries!,
+            lastError.message,
+            delay,
+            lastError
+          );
+          await this.delay(delay);
         }
       }
     }
