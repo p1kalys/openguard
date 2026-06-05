@@ -184,7 +184,7 @@ export class FallbackOrchestrator {
         if (attempt < config.maxRetries!) {
           const delay = Math.pow(2, attempt) * 1000;
           await ctx.emitRetry(
-            attempt,
+            attempt + 1,
             config.maxRetries!,
             lastError.message,
             delay,

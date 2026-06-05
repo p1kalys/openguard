@@ -146,7 +146,7 @@ export async function retry<T>(
     if (opts.eventContext) {
       const reason = lastError instanceof Error ? lastError.message : String(lastError);
       void opts.eventContext.emitRetry(
-        retryNumber - 1,
+        retryNumber,
         opts.maxRetries,
         reason,
         delayMs,

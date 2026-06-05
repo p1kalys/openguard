@@ -86,7 +86,7 @@ export interface ValidationEvent extends BaseEvent {
 export interface RetryEvent extends BaseEvent {
   eventType: 'retry';
   data: {
-    /** Attempt number */
+    /** 1-based retry attempt number */
     attempt: number;
     /** Maximum retries allowed */
     maxRetries: number;

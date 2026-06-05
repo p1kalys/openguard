@@ -78,7 +78,7 @@ describe('Event System', () => {
       emitter.on(
         'retry',
         handler,
-        { filter: (e) => e.eventType === 'retry' && e.data.attempt > 0 }
+        { filter: (e) => e.eventType === 'retry' && e.data.attempt > 1 }
       );
 
       await emitter.emit({
@@ -86,14 +86,14 @@ describe('Event System', () => {
         timestamp: Date.now(),
         requestId: 'req_4',
         eventType: 'retry',
-        data: { attempt: 0, maxRetries: 3, reason: 'timeout', delay: 1000 },
+        data: { attempt: 1, maxRetries: 3, reason: 'timeout', delay: 1000 },
       });
       await emitter.emit({
         eventId: 'evt_5',
         timestamp: Date.now(),
         requestId: 'req_4',
         eventType: 'retry',
-        data: { attempt: 1, maxRetries: 3, reason: 'timeout', delay: 2000 },
+        data: { attempt: 2, maxRetries: 3, reason: 'timeout', delay: 2000 },
       });
 
       expect(handler).toHaveBeenCalledTimes(1);

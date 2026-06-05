@@ -142,6 +142,7 @@ export function normalizeResponse(
   const start = Date.now();
   const normalizer = new ResponseNormalizer(providerName);
   const normalized = normalizer.normalize(response, processingTime);
+  const duration = processingTime ?? Date.now() - start;
 
   if (eventContext) {
     const normalizedResponse: GenerateResponse = {
@@ -161,7 +162,7 @@ export function normalizeResponse(
       providerName,
       response,
       normalizedResponse,
-      processingTime ?? Date.now() - start
+      duration
     );
   }
 

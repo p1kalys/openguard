@@ -136,7 +136,7 @@ export function attachTracingToEvents(
 
         // Retry span — self-contained
         const retrySpan = ctx.startSpan(
-          `Retry ${event.data.attempt + 1}/${event.data.maxRetries}`,
+          `Retry ${event.data.attempt}/${event.data.maxRetries}`,
           'retry',
           ctx.rootSpanId
         );
